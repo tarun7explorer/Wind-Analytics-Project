@@ -1,0 +1,1 @@
+"""Wind Analytics API package."""

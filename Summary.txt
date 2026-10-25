@@ -1,0 +1,226 @@
+WIND FORECAST
+ANALYTICS
+
+Project Vision, Purpose, Scope & End Goal
+
+A full-stack web application for exploring UK national wind-generation forecasts, comparing them with actual generation, and understanding forecast accuracy over a user-selected month.
+
+1. Executive Summary
+
+Wind Forecast Analytics is a full-stack analytics web application for a UK electricity utility's team responsible for buying electricity from the day-ahead wholesale market. It combines wind-generation forecasts with actual generation records from Elexon, helping users review forecasts available for a purchasing decision and measure how closely those forecasts matched the generation that occurred.
+
+The required assessment period is January 2026. As a product enhancement, the dashboard will also allow users to select other months and years, where the Elexon APIs provide sufficient historical data. January 2026 must remain available as the default assessment/demo period. The product is a decision-support analytics tool, not an automated trading system.
+
+2. Vision
+
+Give electricity procurement teams a clear, trustworthy view of national wind-generation forecasts and their historical accuracy, so they can understand uncertainty when planning day-ahead electricity purchases.
+
+3. Business Problem
+
+Electricity demand must be met reliably, but wind generation depends on weather and can differ from the forecast. Day-ahead procurement decisions are made before the delivery day, so teams must use forecasts available at decision time to estimate how much power may need to be procured beyond expected renewable generation.
+
+The assessment defines two central needs: clearly understand the latest relevant renewable-generation forecasts available when purchasing decisions are made, and quantitatively evaluate forecast accuracy so decisions can take measured error into account.
+
+4. Purpose and Objectives
+
+Present UK national wind-generation forecasts in an understandable dashboard.
+
+Compare forecast generation with actual generation for matching half-hourly delivery intervals.
+
+Show when forecasts were published and distinguish information available at decision time from later publications.
+
+Calculate and explain forecast-error metrics using valid matched records.
+
+Provide charts, headline KPIs, and a filterable table so users can inspect the data behind the analysis.
+
+Allow users to select a month and year and recalculate the report for that period when historical data is available.
+
+Deliver a documented, testable application that can be demonstrated to a customer and reviewed by a technical lead.
+
+5. Dates and Period Selection
+
+Assessment-required period
+
+January 1–31, 2026
+
+Default assessment/demo month
+
+January 2026
+
+Additional product capability
+
+User-selectable month and year
+
+Date-range calculation
+
+First day of selected month inclusive; first day of next month exclusive
+
+Time resolution
+
+30-minute delivery intervals
+
+Geographic scope
+
+UK national level
+
+Generation type
+
+Wind only
+
+Data coverage condition
+
+Any selected month is subject to actual Elexon API availability and completeness
+
+For example, selecting February 2026 means querying from 2026-02-01 inclusive to 2026-03-01 exclusive. The application should calculate these boundaries dynamically, including for months of different lengths and leap years. Although the product supports other months, January 2026 remains the required assessment validation period.
+
+6. Data Sources and Datasets
+
+6.1 Actual generation — FUELHH
+
+Purpose: retrieve the actual wind power generated in each half-hourly delivery interval.
+
+Official API documentation:
+
+https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream
+
+fuelType: filter records to WIND.
+
+startTime: target delivery interval.
+
+generation: actual generation value.
+
+6.2 Forecast generation — WINDFOR
+
+Purpose: retrieve forecast wind generation and the publication time of each forecast.
+
+Official API documentation:
+
+https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream
+
+startTime: delivery interval corresponding to the actual-generation interval.
+
+publishTime: time when the forecast was published.
+
+generation: forecast generation value.
+
+6.3 API keys and data boundaries
+
+The assessment specifies these two Elexon datasets and does not require separate weather data, electricity prices, a new machine-learning forecasting model, or an AI service. The public Elexon endpoints are intended to be accessible without an API key; verify access and request parameters against the live API documentation during implementation.
+
+Month selection changes the requested time range, not the permitted data sources. If the API does not return sufficient data for a chosen month, the dashboard must explain the limitation and must not fabricate metrics or records.
+
+7. Intended Dashboard Experience
+
+7.1 Overview
+
+A professional dashboard with four KPI cards, a month/year selector, generation trends, and explicit loading, empty-data, and error states. KPI values must be computed from the selected month's data, not hard-coded.
+
+7.2 Forecast versus actual
+
+A time-series chart comparing forecast and actual generation across half-hourly intervals. Users should be able to inspect a delivery interval and see the publication time of the forecast used.
+
+7.3 Forecast accuracy
+
+Display quantitative metrics and explain what they mean. Recommended metrics are Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and Weighted Absolute Percentage Error (WAPE), where the underlying data supports valid calculations.
+
+7.4 Detailed records
+
+Provide a filterable and sortable table containing delivery timestamp, forecast generation, actual generation, signed error, absolute error, percentage error where defined, and forecast publication time. Missing or unmatched values must be clearly identified rather than silently treated as zero.
+
+8. Analysis Rules
+
+For each valid matched interval, define signed forecast error as forecast generation minus actual generation.
+
+MAE: mean absolute error; represents the average magnitude of error in the generation unit.
+
+RMSE: square root of mean squared error; gives larger errors more influence.
+
+WAPE: sum of absolute errors divided by sum of actual generation, multiplied by 100%; undefined when the denominator is zero.
+
+Forecast selection must match records by delivery interval and use only a forecast published on or before the documented purchasing-decision cutoff. The assessment identifies publishTime but does not specify the exact cutoff; the implementation must document its chosen rule and apply it consistently. Also document timezone handling, duplicate records, missing data, units, and the denominator used for each metric.
+
+9. Technology and Deployment
+
+Frontend
+
+React
+
+Backend
+
+Python with FastAPI
+
+Data provider
+
+Elexon FUELHH and WINDFOR datasets
+
+Deployment target
+
+Vercel, with the Python API configured for its supported runtime
+
+Containerization
+
+Docker; Docker Compose for local multi-service development if used
+
+Testing
+
+Metric calculations, date ranges, forecast cutoffs, missing data, and API behavior
+
+Documentation
+
+README with setup, data sources, metric definitions, deployment URL, and AI-tool disclosure if applicable
+
+Deployment note: Vercel does not deploy an arbitrary Docker Compose stack as one application. The Vercel configuration must be tested separately; Docker remains useful for local reproducibility. A successful local Docker run does not alone prove the Vercel deployment works.
+
+10. End Goal and Success Criteria
+
+A live web app where users can select a month and view the corresponding report when data is available.
+
+January 2026 works as the required assessment/demo period.
+
+Forecasts are matched to actuals correctly and selected using the documented publication cutoff.
+
+KPI cards, charts, and detailed records update consistently when the selected month changes.
+
+Accuracy metrics are correct, tested, and explained in plain language.
+
+Missing or incomplete source data is communicated honestly.
+
+The app can be run locally with documented setup instructions and Docker support.
+
+A public GitHub repository uses an anonymous repository name and includes a useful README and deployed app URL.
+
+An unlisted YouTube demo of no more than 10 minutes includes a customer-focused overview and a technical walkthrough.
+
+11. Out of Scope
+
+Training a new weather or wind-generation forecasting model.
+
+Solar, thermal, hydro, or other generation sources.
+
+Other geographic breakdowns beyond the specified national-level data.
+
+Electricity-price analytics, automated trading, or executing purchases.
+
+A production-grade operational trading platform.
+
+12. Delivery Plan
+
+The assessment advises spending no more than 16 hours and has no fixed submission deadline, although earlier submission is preferred. A two-hour MVP attempt is possible, but data coverage verification, historical forecast-selection logic, testing, deployment and video preparation may take additional time.
+
+Verify the two Elexon endpoints and January 2026 data coverage first.
+
+Implement dynamic month boundaries, API retrieval, forecast matching and metrics.
+
+Build the React dashboard and connect it to the Python API.
+
+Test January 2026 end to end, then test additional months where data is available.
+
+Deploy to Vercel and document the Docker/local workflow.
+
+Publish the public repository, prepare the README, record the demo and verify submitted links in an incognito window.
+
+13. Product Summary
+
+Wind Forecast Analytics transforms Elexon's national wind-generation forecasts and actual generation records into a transparent monthly decision-support dashboard. Users can see what was forecast, what was generated, when the forecast was published, and how large the forecast errors were. January 2026 satisfies the assessment's required scope, while dynamic month selection extends the application to other periods where the source data is available.
+
+Source basis: “REint Full Stack SWE challenge v4.1 Shared - intern.pdf”. Dashboard details and implementation choices are recommendations to help fulfill the assessment; flexible month selection is a product enhancement beyond the specified January 2026 period.

@@ -1,0 +1,67 @@
+wind-forecast-analytics/
+│
+├── api/                              # Python serverless API for Vercel
+│   ├── index.py                      # FastAPI application entry point
+│   ├── routes/
+│   │   ├── health.py                 # Health check endpoint
+│   │   └── analytics.py              # Monthly analytics endpoints
+│   ├── services/
+│   │   ├── elexon_client.py          # Elexon API requests
+│   │   ├── actuals_service.py        # FUELHH actual generation
+│   │   ├── forecast_service.py       # WINDFOR forecasts
+│   │   └── monthly_report_service.py # Monthly report orchestration
+│   ├── analytics/
+│   │   ├── forecast_matching.py      # Match timestamps and publications
+│   │   └── metrics.py                # MAE, RMSE and WAPE
+│   ├── utils/
+│   │   ├── date_ranges.py            # Dynamic month boundaries
+│   │   ├── datetime_utils.py         # Timestamp and timezone handling
+│   │   └── validation.py             # Validate requests and API data
+│   └── schemas/
+│       └── analytics.py              # API request/response schemas
+│
+├── src/                              # React frontend
+│   ├── components/
+│   │   ├── Header.jsx
+│   │   ├── DateSelector.jsx          # Month and year selector
+│   │   ├── KPICards.jsx
+│   │   ├── ForecastChart.jsx
+│   │   ├── AccuracyChart.jsx
+│   │   ├── GenerationTable.jsx
+│   │   ├── LoadingState.jsx
+│   │   ├── EmptyState.jsx
+│   │   └── ErrorState.jsx
+│   │
+│   ├── pages/
+│   │   └── Dashboard.jsx             # Main analytics dashboard
+│   ├── services/
+│   │   └── api.js                    # Calls Python API
+│   ├── hooks/
+│   │   └── useMonthlyAnalytics.js    # Load data when month changes
+│   ├── utils/
+│   │   ├── dateUtils.js              # Month labels and date formatting
+│   │   └── formatters.js             # MW, percentages and timestamps
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+│
+├── public/
+│   └── favicon.svg
+│
+├── tests/
+│   ├── test_metrics.py
+│   ├── test_forecast_matching.py
+│   ├── test_date_ranges.py
+│   └── test_api.py
+│
+├── index.html
+├── package.json
+├── requirements.txt
+├── vite.config.js
+├── vercel.json
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── .dockerignore
+├── .gitignore
+└── README.md

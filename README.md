@@ -76,6 +76,14 @@ npm run test:frontend
 npm run build
 ```
 
+After deploying, verify the frontend and all public API routes against the live URL:
+
+```powershell
+python scripts/deployment_smoke.py https://<your-preview>.vercel.app --year 2026 --month 1
+```
+
+The smoke check requires an HTML React root at `/`, JSON from `/health` and all three analytics routes, and nonempty source and hourly records in the full report. It makes real requests and fails on HTTP errors, malformed schemas, or upstream Elexon failures.
+
 Backend Elexon client tests use `httpx.MockTransport`. Frontend tests use in-memory mocked API payloads. These verify local code paths and response validation; neither is evidence of live Elexon coverage.
 
 `package-lock.json` is committed to keep frontend dependency resolution reproducible. Use `npm ci` for a clean install, then run the frontend tests and production build shown above. Run `npm audit` separately when registry access is available.
