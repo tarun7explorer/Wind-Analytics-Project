@@ -103,6 +103,8 @@ For an independently hosted API, set `VITE_API_BASE_URL` to its HTTPS origin at 
 
 The Elexon endpoints are public and need no API key. The backend does not inherit process-level `HTTP_PROXY`/`HTTPS_PROXY` settings; use `ELEXON_HTTP_PROXY` only when a working explicit proxy is required. This avoids accidentally sending requests through an invalid or blocked loopback proxy. No credential is exposed to Vite or the browser.
 
+For Vercel, `pyproject.toml` declares the Python 3.12-compatible runtime dependencies and explicitly maps the FastAPI app to `api.index:app`. Vercel's FastAPI build hook runs `build.py` before collection. Vite output remains included in the Python function bundle as a fallback; Vercel can also promote `app.frontend()` assets to its CDN. Do not add `dist/` to `excludeFiles` unless CDN collection has been verified for that deployment.
+
 ## API routes
 
 - `GET /health`
@@ -143,7 +145,9 @@ The 12:00 UK day-ahead cutoff remains an assessment proxy rather than a confirme
 
 ## Local verification status
 
-On 2026-10-25, all 38 backend tests, all 6 frontend contract/export tests, Python compilation, and frontend JavaScript/JSX parsing passed. Backend tests ran with local Python 3.14.7; the configured Vercel/CI Python version is 3.12 and the CI workflow has not run yet. Node/npm were v24.21.0/11.19.0; installed Vite/Rollup/esbuild were 6.4.5/4.65.0/0.25.12, and `npm ls --depth=0` was consistent. `npm.cmd run build` exits 1 with `spawn EPERM` while Vite tries to start esbuild while bundling `vite.config.js`; the native esbuild executable itself runs (`0.25.12`), while direct Node `spawnSync` calls to both `cmd.exe` and `node.exe` return `EPERM`, isolating the issue to Windows child-process creation in this managed environment rather than a Vite compilation diagnostic. WSL and Docker are not installed here, so no clean Linux or container build runner was available. No processes were stopped and no security controls were changed. A GitHub Actions workflow now runs backend tests/compilation and frontend tests/build on Ubuntu after publication; it has not run yet because there is no GitHub remote. The production build remains unverified until that runner or Vercel builds the current commit.
+The current local environment has Python 3.14.7, FastAPI 0.162.0, and Starlette 1.10.0; `api.index:app` imports successfully, `pip check` passes, and local TestClient requests to `/` and `/health` return 200. The deployment pins Python 3.12, which is supported by Vercel, but Python 3.12 is not installed in this local environment. Vercel's 2026-10-25 build log confirms that Vite generated `dist/index.html` and two assets. It also reported a FastAPI static collection warning, and the public deployment returned a runtime 500 according to the owner. The full runtime traceback and post-fix deployment are not available here, so the runtime exception and production recovery remain unverified.
+
+The current local runner still cannot complete `npm.cmd run build`: Vite/esbuild fails with `spawn EPERM` while bundling `vite.config.js`. This execution environment also cannot reach the Vercel URL through its configured proxy. The Ubuntu GitHub Actions frontend job now builds the Vite app and tests FastAPI's built frontend root/assets; that job must pass after push before a deployment can be considered verified.
 
 A local live report request after the hourly implementation returned HTTP 200 from both Elexon streams and produced the verified counts and metrics above. The client bypasses the process proxy that had pointed at `http://127.0.0.1:9`; direct Python `httpx` requests with `trust_env=False` succeeded. Docker is not installed. Automated tests use mocked fixtures and verify application behavior; they are separate from the live report request.
 
