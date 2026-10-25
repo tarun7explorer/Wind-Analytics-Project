@@ -1,4 +1,5 @@
 # Wind Analytics
+# Live Link - [https://wind01analytics7project.vercel.app/]
 
 UK national wind generation forecast analytics. The React dashboard reads a FastAPI service that compares Elexon BMRS FUELHH wind actuals with WINDFOR forecasts. The app does not synthesize measurements: upstream errors and missing intervals remain visible.
 
