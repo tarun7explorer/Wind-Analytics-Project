@@ -140,34 +140,6 @@ Live January 2026 verification on 2026-10-25 returned 1,488/1,488 FUELHH half-ho
 
 The 12:00 UK day-ahead cutoff remains an assessment proxy rather than a confirmed procurement policy. The source contract status is `verified_live_contract`; each successful response also includes `source_retrieved_at`. API and health responses use `Cache-Control: no-store`, and the browser fetch disables its cache; if Elexon is unreachable, the dashboard clears the prior report and displays an explicit error instead of silently showing stale values. Network connection errors, HTTP rejections (including invalid-query and auth statuses), malformed JSON, and empty responses are handled separately. The combined report avoids fetching the large source windows separately for the dashboard. MAE/RMSE use matched hourly pairs only; WAPE divides total absolute hourly error by total hourly actual MW and is null when that denominator is zero. Per-hour percentage error is null for zero actual MW.
 
-## Vercel deployment
-
-This uses one standard Vercel FastAPI project. Vercel's current FastAPI integration supports `app.frontend()` to serve a built frontend from the CDN; API routes take precedence and an `index.html` fallback supports SPA navigation. The FastAPI guide documents this and the `tool.vercel.scripts.build` hook. See [Vite on Vercel](https://vercel.com/docs/frameworks/frontend/vite), [FastAPI on Vercel](https://vercel.com/docs/frameworks/backend/fastapi), and [the FastAPI deployment guide](https://vercel.com/kb/guide/ship-a-fastapi-app-on-vercel).
-
-Vercel detects the FastAPI app exported as `app` from `api/index.py`. The repository's `.python-version` requests Python 3.12. Its `pyproject.toml` build hook runs `build.py`, which uses the committed `package-lock.json` with `npm ci` and then runs `npm run build`. The FastAPI app calls `app.frontend("/", directory="dist", fallback="index.html")`; Vercel promotes those files to its CDN while keeping API paths on FastAPI. `vercel.json` sets a 60-second maximum function duration and excludes development/generated files from the function bundle. The Vite app uses same-origin `/api` requests, so leave `VITE_API_BASE_URL` empty and no CORS setting is needed. There is no Elexon API key; leave `ELEXON_HTTP_PROXY` unset unless the deployment explicitly requires a working proxy.
-
-The Elexon requests run concurrently with 20-second client timeouts. A fresh local January report response was 606,566 bytes, below Vercel Functions' documented 4.5 MB response payload cap. API responses carry `Cache-Control: no-store`; the browser fetch disables its cache. The 60-second max duration leaves room for the upstream calls, but a real preview must confirm actual Vercel latency and outbound network access.
-
-### Preview deployment steps
-
-1. Create an empty public GitHub repository (do not initialize it with README, license, or `.gitignore`) and copy its HTTPS clone URL. This workspace has no previous Git remote or commit history.
-2. Add that remote, stage only the intended files, review the staged diff, and commit the prepared `preview` branch. Push only that branch initially:
-
-   ```powershell
-   git remote add origin https://github.com/<OWNER>/<REPOSITORY>.git
-   git branch -M preview
-   git add .gitignore .dockerignore .env.example .env.frontend.example .python-version Dockerfile docker-compose.yml README.md Structure.txt Summary.txt api build.py index.html package-lock.json package.json pyproject.toml requirements.txt src tests vercel.json vite.config.js .github
-   git diff --cached --check
-   git diff --cached --stat
-   git diff --cached
-   git commit -m "Prepare Wind Analytics preview deployment"
-   git push -u origin preview
-   ```
-3. Import the GitHub repository in Vercel. Use the repository root as the project root. `vercel.json` pins the supported **FastAPI** framework preset so the co-located `package.json` does not select Vite instead. Set the production branch to `main`; the pushed `preview` branch will produce a Preview Deployment. Do not merge or push to `main` until preview review is complete.
-4. No Vercel environment variables are required for the same-origin setup. Keep `VITE_API_BASE_URL` empty. Optionally set `ELEXON_API_BASE_URL` to override the public BMRS base URL or `ELEXON_HTTP_PROXY` only when a proxy is required.
-5. Open the generated Preview URL in a private browser window. Check `/`, `/health`, `/api/analytics/monthly?year=2026&month=1`, `/api/analytics/records?year=2026&month=1`, and `/api/analytics/report?year=2026&month=1`; then verify charts, month changes, table, and CSV export. Check the browser network panel for same-origin API calls and missing assets.
-
-GitHub CLI and Vercel CLI are not installed in this environment, no remote is configured, and no Vercel deployment has been made. A Vercel Preview URL, public API result, and incognito check therefore remain unverified and require account access. The Python Vercel runtime is Beta; the project uses its documented FastAPI entrypoint and supported static frontend integration. No Vercel Services project setting is required.
 
 ## Local verification status
 
